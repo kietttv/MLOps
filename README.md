@@ -30,6 +30,10 @@ This repository provides a lightweight scaffold for exploring end-to-end MLOps w
   docker build -t mlops-app .
   docker run --rm -p 8000:8000 mlops-app
   ```
+- Run the automated test suite:
+  ```bash
+  pytest -q
+  ```
 
 ## Project Structure
 
