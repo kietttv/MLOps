@@ -9,6 +9,11 @@ COPY . .
 
 ENV MLFLOW_TRACKING_URI=sqlite:///mlflow.db
 ENV MLFLOW_REGISTRY_URI=sqlite:///mlflow.db
+ENV PYTHONPATH=/app
+
+RUN python data/make_data.py \
+    && python models/train.py \
+    && python models/evaluate.py
 
 EXPOSE 8080
 

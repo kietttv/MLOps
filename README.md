@@ -35,6 +35,13 @@ This repository provides a lightweight scaffold for exploring end-to-end MLOps w
   docker build -t <dockerhub_user>/mlops-demo:latest .
   docker run -p 8080:8080 --name mlops <dockerhub_user>/mlops-demo:latest
   ```
+  Build step sẽ tự động sinh dữ liệu, train, và evaluate để đăng ký model Production trong image, nên container khởi động có thể dự đoán ngay.
+  Nếu tự chạy script trong một môi trường khác, nhớ set `PYTHONPATH=/app` (ở Dockerfile được cấu hình sẵn) để tránh lỗi import.
+- GitHub Actions CI/CD (push to Docker Hub):
+  1. Trong repo GitHub, vào **Settings → Secrets and variables → Actions**.
+  2. Tạo secret `DOCKERHUB_USERNAME` (tên tài khoản Docker Hub).
+  3. Tạo secret `DOCKERHUB_TOKEN` (Access Token từ Docker Hub > Security > New Access Token).
+  4. Commit/push vào nhánh `main` để workflow `.github/workflows/docker-ci.yml` build & push image với tag `latest` và `SHA`.
 - Run the automated test suite:
   ```bash
   pytest -q
