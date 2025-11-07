@@ -1,0 +1,12 @@
+mlflow
+scikit-learn
+pandas
+numpy
+flask
+gunicorn
+matplotlib
+seaborn
+xgboost
+pytest
+requests
+

@@ -1,0 +1,19 @@
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Virtual environments
+venv/
+
+# Local environment files
+.env
+
+# Databases and MLFlow artifacts
+*.db
+mlruns/
+
+# OS specific
+.DS_Store
+
+

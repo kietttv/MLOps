@@ -1,0 +1,6 @@
+name: mlops
+
+entry_points:
+  train:
+    command: "python models/train.py"
+
