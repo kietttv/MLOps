@@ -30,6 +30,11 @@ This repository provides a lightweight scaffold for exploring end-to-end MLOps w
   docker build -t mlops-app .
   docker run --rm -p 8000:8000 mlops-app
   ```
+- Publishable image workflow:
+  ```bash
+  docker build -t <dockerhub_user>/mlops-demo:latest .
+  docker run -p 8080:8080 --name mlops <dockerhub_user>/mlops-demo:latest
+  ```
 - Run the automated test suite:
   ```bash
   pytest -q

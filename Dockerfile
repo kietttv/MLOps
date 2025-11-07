@@ -7,10 +7,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV FLASK_APP=app/app.py
-ENV PYTHONUNBUFFERED=1
+ENV MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+ENV MLFLOW_REGISTRY_URI=sqlite:///mlflow.db
 
-EXPOSE 8000
+EXPOSE 8080
 
-CMD ["gunicorn", "app.app:create_app", "--bind", "0.0.0.0:8000", "--worker-class", "sync"]
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "app.app:app"]
 
