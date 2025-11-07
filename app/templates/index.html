@@ -3,13 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLOps Dashboard</title>
+    <title>Customer Purchase Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem auto;
+            max-width: 720px;
+            padding: 0 1rem;
+            line-height: 1.5;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+
+        fieldset {
+            border: 1px solid #dddddd;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+
+        button {
+            grid-column: 1 / -1;
+            padding: 0.75rem;
+            background-color: #0057d9;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #0a66ff;
+        }
+
+        #result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cccccc;
+            background-color: #f8f9fa;
+        }
+
+        .error {
+            color: #b00020;
+        }
+    </style>
 </head>
 <body>
     <main>
-        <h1>MLOps Project</h1>
-        <p>Placeholder dashboard for monitoring model lifecycle.</p>
+        <h1>Customer Purchase Prediction</h1>
+        <p>Nhập các đặc trưng khách hàng và nhận dự đoán xem khách hàng có khả năng mua hàng hay không.</p>
+
+        <form id="prediction-form">
+            <fieldset>
+                <legend>Feature Inputs</legend>
+                {% for feature in feature_names %}
+                    <label for="{{ feature }}">{{ feature | upper }}</label>
+                    <input type="number" step="any" name="{{ feature }}" id="{{ feature }}" required />
+                {% endfor %}
+                <button type="submit">Predict</button>
+            </fieldset>
+        </form>
+
+        <section id="result" hidden>
+            <h2>Result</h2>
+            <p id="result-text"></p>
+        </section>
     </main>
+
+    <script>
+        const form = document.getElementById("prediction-form");
+        const resultSection = document.getElementById("result");
+        const resultText = document.getElementById("result-text");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const payload = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await response.json();
+                resultSection.hidden = false;
+
+                if (!response.ok) {
+                    resultText.innerHTML = `<span class="error">Error: ${data.error || "Unknown error"}</span>`;
+                    return;
+                }
+
+                resultText.textContent = `${data.label} (prediction: ${data.prediction})`;
+            } catch (error) {
+                resultSection.hidden = false;
+                resultText.innerHTML = `<span class="error">Request failed: ${error}</span>`;
+            }
+        });
+    </script>
 </body>
 </html>
 
