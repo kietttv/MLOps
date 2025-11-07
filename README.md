@@ -62,6 +62,34 @@ MLOps/
 
 The GitHub Actions workflow (`.github/workflows/docker-ci.yml`) triggers automatically on pushes or pull requests targeting the `main` branch. It installs dependencies, runs tests, and builds the Docker image to ensure the project remains production-ready.
 
+## MLflow Setup
+
+Configure MLflow to store both tracking metadata and the model registry in a local SQLite database. Set the following environment variables before running experiments:
+
+- **Linux / macOS (bash/zsh):**
+  ```bash
+  export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+  export MLFLOW_REGISTRY_URI=sqlite:///mlflow.db
+  ```
+- **Windows (PowerShell):**
+  ```powershell
+  $env:MLFLOW_TRACKING_URI = "sqlite:///mlflow.db"
+  $env:MLFLOW_REGISTRY_URI = "sqlite:///mlflow.db"
+  ```
+- **Windows (Command Prompt):**
+  ```cmd
+  set MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+  set MLFLOW_REGISTRY_URI=sqlite:///mlflow.db
+  ```
+
+Launch the MLflow UI to inspect runs and registered models:
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+Artifacts and runs are stored locally under the `mlruns/` directory (ignored by Git). Ensure the helper utilities in `models/mlflow_utils.py` are used to set experiments and log artifacts consistently.
+
 ## Contributing
 
 Each script currently raises `NotImplementedError` to mark areas where data processing, training, tuning, and evaluation logic should be added. Implement the relevant workflow, add automated tests, and open a pull request to share improvements.
