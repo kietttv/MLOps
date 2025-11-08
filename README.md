@@ -32,8 +32,8 @@ This repository provides a lightweight scaffold for exploring end-to-end MLOps w
   ```
 - Publishable image workflow:
   ```bash
-  docker build -t <dockerhub_user>/mlops-demo:latest .
-  docker run -p 8080:8080 --name mlops <dockerhub_user>/mlops-demo:latest
+  docker build -t tvtkiet2002/mlops:latest .
+  docker run -p 8080:8080 --name mlops tvtkiet2002/mlops:latest
   ```
   Build step sẽ tự động sinh dữ liệu, train, và evaluate để đăng ký model Production trong image, nên container khởi động có thể dự đoán ngay.
   Nếu tự chạy script trong một môi trường khác, nhớ set `PYTHONPATH=/app` (ở Dockerfile được cấu hình sẵn) để tránh lỗi import.

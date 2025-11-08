@@ -17,4 +17,4 @@ RUN python data/make_data.py \
 
 EXPOSE 8080
 
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app.app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "--workers", "2", "--timeout", "120", "app.app:app"]

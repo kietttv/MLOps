@@ -49,7 +49,16 @@ def create_app() -> Flask:
     """Instantiate and configure the Flask application."""
 
     app = Flask(__name__)
-    model = _load_model()
+    model_cache: Dict[str, mlflow.pyfunc.PyFuncModel] = {}
+
+    def _get_model() -> mlflow.pyfunc.PyFuncModel:
+        """Load the production model lazily and cache it for subsequent requests."""
+
+        cached = model_cache.get("model")
+        if cached is None:
+            cached = _load_model()
+            model_cache["model"] = cached
+        return cached
 
     @app.route("/", methods=["GET"])
     def index() -> str:
@@ -71,6 +80,7 @@ def create_app() -> Flask:
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
 
+        model = _get_model()
         prediction = model.predict(features)
         pred_label = int(prediction[0]) if isinstance(prediction, (list, np.ndarray)) else int(prediction)
         response = {
