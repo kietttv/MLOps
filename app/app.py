@@ -11,7 +11,7 @@ from flask import Flask, jsonify, render_template, request
 MODEL_URI = "models:/best-customer-classifier/Production"
 FEATURE_SCHEMA = [
     {"id": "f1", "label": "Customer Age", "hint": "Tuổi của khách hàng (năm)"},
-    {"id": "f2", "label": "Annual Income (USD)", "hint": "Thu nhập hằng năm (đô la Mỹ)"},
+    {"id": "f2", "label": "Annual Income (USD)", "hint": "Thu nhập hằng năm (USD)"},
     {"id": "f3", "label": "Purchase Frequency", "hint": "Số đơn hàng trung bình mỗi tháng"},
     {"id": "f4", "label": "Average Order Value", "hint": "Giá trị đơn hàng trung bình (USD)"},
     {"id": "f5", "label": "Days Since Last Purchase", "hint": "Số ngày kể từ lần mua cuối"},
