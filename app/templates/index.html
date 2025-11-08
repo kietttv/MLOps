@@ -5,80 +5,239 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Purchase Prediction</title>
     <style>
+        :root {
+            color-scheme: light dark;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f4f5f7;
+            --surface: #ffffff;
+            --surface-muted: #eef2ff;
+            --border: #e2e8f0;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --success: #047857;
+            --danger: #b91c1c;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a;
+                --surface: #111827;
+                --surface-muted: #1f2937;
+                --border: #1f2937;
+                --text: #e5e7eb;
+                --muted: #94a3b8;
+            }
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 2rem auto;
-            max-width: 720px;
-            padding: 0 1rem;
-            line-height: 1.5;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, rgba(37, 99, 235, 0.12), transparent),
+                radial-gradient(circle at bottom, rgba(14, 165, 233, 0.08), transparent),
+                var(--bg);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+
+        main {
+            width: min(960px, 92vw);
+            background: var(--surface);
+            border-radius: 1.5rem;
+            box-shadow: 0 24px 82px rgba(15, 23, 42, 0.18);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        header {
+            padding: 2.5rem clamp(2rem, 4vw + 1rem, 4rem);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(14, 165, 233, 0.08));
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: clamp(2rem, 1.5vw + 1.5rem, 2.6rem);
+            letter-spacing: -0.02em;
+        }
+
+        header p {
+            margin: 0.75rem 0 0;
+            max-width: 48ch;
+            color: var(--muted);
+        }
+
+        section.content {
+            padding: clamp(2rem, 4vw + 1rem, 3.5rem);
+            display: grid;
+            gap: clamp(1.5rem, 2vw, 2rem);
         }
 
         form {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1rem;
+            gap: 1.75rem;
         }
 
-        fieldset {
-            border: 1px solid #dddddd;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem clamp(1rem, 1.5vw, 1.5rem);
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--muted);
+            letter-spacing: 0.01em;
+        }
+
+        input[type="number"] {
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 0.85rem 1rem;
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: var(--surface-muted);
+            color: var(--text);
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: rgba(37, 99, 235, 0.6);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+            background-color: var(--surface);
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
         button {
-            grid-column: 1 / -1;
-            padding: 0.75rem;
-            background-color: #0057d9;
-            color: white;
+            background: var(--primary);
+            color: #ffffff;
             border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
+            border-radius: 0.85rem;
+            padding: 0.9rem 1.6rem;
             font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
         button:hover {
-            background-color: #0a66ff;
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 26px rgba(37, 99, 235, 0.25);
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: wait;
+            box-shadow: none;
+            transform: none;
         }
 
         #result {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #cccccc;
-            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            background: rgba(37, 99, 235, 0.08);
+            display: grid;
+            gap: 0.5rem;
         }
 
-        .error {
-            color: #b00020;
+        #result.success {
+            border-color: rgba(4, 120, 87, 0.2);
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+        }
+
+        #result.error {
+            border-color: rgba(185, 28, 28, 0.2);
+            background: rgba(248, 113, 113, 0.12);
+            color: var(--danger);
+        }
+
+        #result h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            letter-spacing: 0.01em;
+        }
+
+        #result p {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .hint {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        footer {
+            padding: 1.5rem clamp(2rem, 4vw + 1rem, 4rem);
+            font-size: 0.9rem;
+            color: var(--muted);
+            border-top: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), transparent);
         }
     </style>
 </head>
 <body>
     <main>
-        <h1>Customer Purchase Prediction</h1>
-        <p>Nhập các đặc trưng khách hàng và nhận dự đoán xem khách hàng có khả năng mua hàng hay không.</p>
+        <header>
+            <h1>Customer Purchase Prediction</h1>
+            <p>
+                Nhập giá trị cho mười đặc trưng hành vi và nhân khẩu học, sau đó nhận dự đoán
+                liệu khách hàng có khả năng mua hàng trong chiến dịch sắp tới hay không.
+            </p>
+        </header>
 
-        <form id="prediction-form">
-            <fieldset>
-                <legend>Feature Inputs</legend>
-                {% for feature in feature_names %}
-                    <label for="{{ feature }}">{{ feature | upper }}</label>
-                    <input type="number" step="any" name="{{ feature }}" id="{{ feature }}" required />
-                {% endfor %}
-                <button type="submit">Predict</button>
-            </fieldset>
-        </form>
+        <section class="content">
+            <form id="prediction-form">
+                <div class="input-grid">
+                    {% for feature in feature_schema %}
+                        <div class="input-field">
+                            <label for="{{ feature.id }}">{{ feature.label }}</label>
+                            <input type="number" step="any" name="{{ feature.id }}" id="{{ feature.id }}" placeholder="{{ feature.hint }}" required />
+                        </div>
+                    {% endfor %}
+                </div>
 
-        <section id="result" hidden>
-            <h2>Result</h2>
-            <p id="result-text"></p>
+                <div class="actions">
+                    <button type="submit" id="submit-button">Predict Outcome</button>
+                    <span class="hint">Gợi ý: sử dụng các giá trị chuẩn hóa hoặc số liệu thực tế từ hồ sơ khách hàng.</span>
+                </div>
+            </form>
+
+            <section id="result" hidden>
+                <h2>Kết quả dự đoán</h2>
+                <p id="result-text"></p>
+            </section>
         </section>
+
+        <footer>
+            Tích hợp cùng MLflow Model Registry để bảo đảm mô hình Production luôn được cập nhật từ pipeline MLOps.
+        </footer>
     </main>
 
     <script>
         const form = document.getElementById("prediction-form");
         const resultSection = document.getElementById("result");
         const resultText = document.getElementById("result-text");
+        const submitButton = document.getElementById("submit-button");
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -86,6 +245,9 @@
             const payload = Object.fromEntries(formData.entries());
 
             try {
+                submitButton.disabled = true;
+                submitButton.textContent = "Predicting...";
+
                 const response = await fetch("/predict", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -94,19 +256,25 @@
 
                 const data = await response.json();
                 resultSection.hidden = false;
+                resultSection.classList.remove("success", "error");
 
                 if (!response.ok) {
-                    resultText.innerHTML = `<span class="error">Error: ${data.error || "Unknown error"}</span>`;
+                    resultSection.classList.add("error");
+                    resultText.textContent = `Lỗi: ${data.error || "Unknown error"}`;
                     return;
                 }
 
+                resultSection.classList.add("success");
                 resultText.textContent = `${data.label} (prediction: ${data.prediction})`;
             } catch (error) {
                 resultSection.hidden = false;
-                resultText.innerHTML = `<span class="error">Request failed: ${error}</span>`;
+                resultSection.classList.add("error");
+                resultText.textContent = `Request failed: ${error}`;
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Predict Outcome";
             }
         });
     </script>
 </body>
 </html>
-

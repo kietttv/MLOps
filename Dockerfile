@@ -18,4 +18,3 @@ RUN python data/make_data.py \
 EXPOSE 8080
 
 CMD ["gunicorn", "-b", "0.0.0.0:8080", "app.app:app"]
-

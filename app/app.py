@@ -9,7 +9,19 @@ import numpy as np
 from flask import Flask, jsonify, render_template, request
 
 MODEL_URI = "models:/best-customer-classifier/Production"
-FEATURE_NAMES = [f"f{idx}" for idx in range(1, 11)]
+FEATURE_SCHEMA = [
+    {"id": "f1", "label": "Customer Age", "hint": "Tuổi của khách hàng (năm)"},
+    {"id": "f2", "label": "Annual Income (USD)", "hint": "Thu nhập hằng năm (đô la Mỹ)"},
+    {"id": "f3", "label": "Purchase Frequency", "hint": "Số đơn hàng trung bình mỗi tháng"},
+    {"id": "f4", "label": "Average Order Value", "hint": "Giá trị đơn hàng trung bình (USD)"},
+    {"id": "f5", "label": "Days Since Last Purchase", "hint": "Số ngày kể từ lần mua cuối"},
+    {"id": "f6", "label": "Website Visits per Month", "hint": "Số lượt truy cập website mỗi tháng"},
+    {"id": "f7", "label": "Email Engagement Rate", "hint": "Tỷ lệ tương tác email marketing (0-1)"},
+    {"id": "f8", "label": "Loyalty Score", "hint": "Điểm trung thành/tương tác tổng hợp"},
+    {"id": "f9", "label": "Customer Tenure (Months)", "hint": "Số tháng khách hàng gắn bó"},
+    {"id": "f10", "label": "Discount Usage Rate", "hint": "Tỷ lệ sử dụng mã giảm giá (0-1)"},
+]
+FEATURE_NAMES = [field["id"] for field in FEATURE_SCHEMA]
 
 
 def _load_model() -> mlflow.pyfunc.PyFuncModel:
@@ -43,7 +55,7 @@ def create_app() -> Flask:
     def index() -> str:
         """Render the interactive prediction form."""
 
-        return render_template("index.html", feature_names=FEATURE_NAMES)
+        return render_template("index.html", feature_schema=FEATURE_SCHEMA)
 
     @app.route("/predict", methods=["POST"])
     def predict() -> Any:
