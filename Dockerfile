@@ -11,10 +11,9 @@ ENV MLFLOW_TRACKING_URI=sqlite:///mlflow.db
 ENV MLFLOW_REGISTRY_URI=sqlite:///mlflow.db
 ENV PYTHONPATH=/app
 
-RUN python data/make_data.py \
-    && python models/train.py \
-    && python models/evaluate.py
+COPY docker-entrypoint.sh .
+RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 8080
 
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "--workers", "2", "--timeout", "120", "app.app:app"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

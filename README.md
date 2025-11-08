@@ -36,7 +36,7 @@ This repository provides a lightweight scaffold for exploring end-to-end MLOps w
   docker run -p 8080:8080 --name mlops tvtkiet2002/mlops_tvtk:latest
   docker push tvtkiet2002/mlops_tvtk:latest
   ```
-  Build step sẽ tự động sinh dữ liệu, train, và evaluate để đăng ký model Production trong image, nên container khởi động có thể dự đoán ngay.
+  Khi container khởi động, entrypoint sẽ kiểm tra dữ liệu/MLflow registry và tự động chạy `make_data.py`, `train.py`, `evaluate.py` nếu chưa có, đảm bảo mô hình Production sẵn sàng cho phục vụ dự đoán.
   Nếu tự chạy script trong một môi trường khác, nhớ set `PYTHONPATH=/app` (ở Dockerfile được cấu hình sẵn) để tránh lỗi import.
 - GitHub Actions CI/CD (push to Docker Hub):
   1. Trong repo GitHub, vào **Settings → Secrets and variables → Actions**.
