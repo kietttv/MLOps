@@ -32,8 +32,9 @@ This repository provides a lightweight scaffold for exploring end-to-end MLOps w
   ```
 - Publishable image workflow:
   ```bash
-  docker build -t tvtkiet2002/mlops:latest .
-  docker run -p 8080:8080 --name mlops tvtkiet2002/mlops:latest
+  docker build -t tvtkiet2002/mlops_tvtk:latest .
+  docker run -p 8080:8080 --name mlops tvtkiet2002/mlops_tvtk:latest
+  docker push tvtkiet2002/mlops_tvtk:latest
   ```
   Build step sẽ tự động sinh dữ liệu, train, và evaluate để đăng ký model Production trong image, nên container khởi động có thể dự đoán ngay.
   Nếu tự chạy script trong một môi trường khác, nhớ set `PYTHONPATH=/app` (ở Dockerfile được cấu hình sẵn) để tránh lỗi import.
@@ -41,7 +42,7 @@ This repository provides a lightweight scaffold for exploring end-to-end MLOps w
   1. Trong repo GitHub, vào **Settings → Secrets and variables → Actions**.
   2. Tạo secret `DOCKERHUB_USERNAME` (tên tài khoản Docker Hub).
   3. Tạo secret `DOCKERHUB_TOKEN` (Access Token từ Docker Hub > Security > New Access Token).
-  4. Commit/push vào nhánh `main` để workflow `.github/workflows/docker-ci.yml` build & push image với tag `latest` và `SHA`.
+  4. Commit/push vào nhánh `main` để pipeline `.github/workflows/docker-ci.yml` cài dependencies, chạy `pytest -q`, sau đó build & push image lên `tvtkiet2002/mlops_tvtk` với tag `latest` và `SHA`.
 - Run the automated test suite:
   ```bash
   pytest -q

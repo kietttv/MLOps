@@ -11,6 +11,19 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest -q
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -24,5 +37,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mlops-demo:latest,${{ secrets.DOCKERHUB_USERNAME }}/mlops-demo:${{ github.sha }}
+          tags: tvtkiet2002/mlops_tvtk:latest,tvtkiet2002/mlops_tvtk:${{ github.sha }}
 
