@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -22,9 +23,12 @@ from xgboost import XGBClassifier
 from models.mlflow_utils import (
     log_confusion_matrix,
     log_dict_as_artifact,
+    log_feature_importance,
     log_roc_curve,
     set_experiment,
 )
+
+logger = logging.getLogger(__name__)
 
 
 EXPERIMENT_NAME = "Customer Purchase Prediction"
@@ -46,6 +50,7 @@ def _load_dataset(path: Path) -> Tuple[pd.DataFrame, pd.Series]:
 
     features = df[feature_cols]
     target = df["target"]
+    logger.info("Loaded dataset with shape=%s from %s", df.shape, path)
     return features, target
 
 
@@ -168,6 +173,8 @@ def run_training() -> None:
     """Execute training for multiple models and log results to MLflow."""
 
     features, target = _load_dataset(DATA_PATH)
+    feature_names = features.columns.tolist()
+
     X_train, X_valid, y_train, y_valid = train_test_split(
         features,
         target,
@@ -177,6 +184,7 @@ def run_training() -> None:
     )
 
     set_experiment(EXPERIMENT_NAME)
+    logger.info("Starting training pipeline with %d candidate models.", len(models_config))
 
     models_config = _prepare_models()
     best_result: Dict[str, Any] | None = None
@@ -185,11 +193,13 @@ def run_training() -> None:
     for config in models_config:
         estimator: Pipeline = config["estimator"]
         with mlflow.start_run(run_name=config["name"]) as run:
+            logger.info("Training model=%s", config["name"])
             mlflow.set_tag("model_name", config["name"])
             mlflow.set_tag("note", config["note"])
             mlflow.log_params(config["params"])
 
             estimator.fit(X_train, y_train)
+            logger.info("Completed fit for model=%s", config["name"])
 
             y_pred = estimator.predict(X_valid)
             if hasattr(estimator, "predict_proba"):
@@ -206,9 +216,25 @@ def run_training() -> None:
             }
 
             mlflow.log_metrics(metrics)
+            logger.info(
+                "Validation metrics for %s -> accuracy=%.4f, f1=%.4f, roc_auc=%.4f",
+                config["name"],
+                metrics["accuracy"],
+                metrics["f1"],
+                metrics["roc_auc"],
+            )
 
             log_confusion_matrix(y_valid, y_pred, artifact_path="plots/confusion_matrix.png")
             log_roc_curve(y_valid, y_proba, artifact_path="plots/roc_curve.png")
+
+            core_model = estimator.named_steps.get("model") if hasattr(estimator, "named_steps") else estimator
+            if hasattr(core_model, "feature_importances_"):
+                log_feature_importance(
+                    feature_names,
+                    core_model.feature_importances_,
+                    artifact_path=f"plots/{config['name']}_feature_importance.png",
+                    top_k=10,
+                )
 
             summary_payload = {
                 "model_name": config["name"],
@@ -246,6 +272,13 @@ def run_training() -> None:
         raise RuntimeError("Training did not produce any results.")
 
     BEST_MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    logger.info(
+        "Best model identified: %s with F1=%.4f (run_id=%s, version=%s)",
+        best_result["model_name"],
+        best_result["metrics"]["f1"],
+        best_result["run_id"],
+        best_result["model_version"],
+    )
     with BEST_MODEL_PATH.open("w", encoding="utf-8") as handle:
         json.dump(
             {

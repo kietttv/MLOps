@@ -47,6 +47,11 @@ This repository provides a lightweight scaffold for exploring end-to-end MLOps w
   ```bash
   pytest -q
   ```
+- Chạy trọn bộ pipeline (Linux/macOS hoặc Windows):
+  ```bash
+  ./scripts/run_all.sh        # Linux/macOS
+  scripts\run_all.bat         # Windows
+  ```
 
 ## Project Structure
 
@@ -64,6 +69,9 @@ MLOps/
 │     └─ index.html
 ├─ tests/
 │  └─ test_app.py
+├─ scripts/
+│  ├─ run_all.sh
+│  └─ run_all.bat
 ├─ requirements.txt
 ├─ Dockerfile
 ├─ .gitignore
@@ -74,6 +82,13 @@ MLOps/
 ├─ README.md
 └─ repo_link.txt
 ```
+
+## Troubleshooting
+
+- **Không tải được model MLflow (`Model not found`):** đảm bảo đã chạy `models/evaluate.py` hoặc script `scripts/run_all.*` để đăng ký phiên bản mới nhất trong Model Registry.
+- **Lỗi SQLite/MLflow DB bị hỏng:** dừng ứng dụng, xoá `mlruns/` và `mlflow.db`, sau đó chạy lại `scripts/run_all.sh` (hoặc `.bat`) để khởi tạo từ đầu.
+- **Ứng dụng container khởi động chậm:** lần đầu container chạy sẽ train + evaluate mô hình. Để giảm thời gian, mount volume chứa `mlflow.db` và `mlruns/` từ host để tái sử dụng.
+- **Cảnh báo `Git executable not found`:** cài đặt Git trong môi trường hoặc bỏ qua nếu không cần lưu trữ SHA của commit trong MLflow.
 
 ## Running the CI Workflow
 
