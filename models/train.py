@@ -183,10 +183,9 @@ def run_training() -> None:
         stratify=target,
     )
 
+    models_config = _prepare_models()
     set_experiment(EXPERIMENT_NAME)
     logger.info("Starting training pipeline with %d candidate models.", len(models_config))
-
-    models_config = _prepare_models()
     best_result: Dict[str, Any] | None = None
     overall_summary: List[Dict[str, Any]] = []
 
