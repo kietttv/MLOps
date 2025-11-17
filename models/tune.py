@@ -186,7 +186,6 @@ def run_tuning() -> None:
                             eval_metric="logloss",
                             n_jobs=-1,
                             random_state=42,
-                            use_label_encoder=False,
                         ),
                     )
                 ]
@@ -291,5 +290,6 @@ def run_tuning() -> None:
 
 
 if __name__ == "__main__":
+    print("Starting tuning...")
     run_tuning()
 

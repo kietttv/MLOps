@@ -1,4 +1,4 @@
-artifact_path: file:///D:/FSB_MSE/ML%20DevOps/MLOps_tvtk/mlruns/853913668321030982/models/m-5bff8c804e6b441c87825513cdde7820/artifacts
+artifact_path: file:///D:/FSB_MSE/ML%20DevOps/MLOps_tvtk/mlruns/853913668321030982/models/m-b8bcaef090a841688d8a6a1eaabbdf60/artifacts
 flavors:
   python_function:
     env:
@@ -14,9 +14,9 @@ flavors:
     serialization_format: cloudpickle
     sklearn_version: 1.7.2
 mlflow_version: 3.5.1
-model_id: m-5bff8c804e6b441c87825513cdde7820
-model_size_bytes: 480235
-model_uuid: m-5bff8c804e6b441c87825513cdde7820
+model_id: m-b8bcaef090a841688d8a6a1eaabbdf60
+model_size_bytes: 480202
+model_uuid: m-b8bcaef090a841688d8a6a1eaabbdf60
 prompts: null
-run_id: e45816cd86be4b1ea3426be16e22cb6f
-utc_time_created: '2025-11-16 17:17:17.552827'
+run_id: 2ce0e067467a4fc3a01b069567d37f51
+utc_time_created: '2025-11-17 04:39:24.503480'

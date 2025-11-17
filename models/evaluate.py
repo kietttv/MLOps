@@ -254,5 +254,6 @@ def run_evaluation() -> None:
 
 
 if __name__ == "__main__":
+    print("Starting evaluation...")
     run_evaluation()
 

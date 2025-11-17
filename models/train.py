@@ -101,7 +101,6 @@ def _prepare_models(random_state: int = 42) -> List[Dict[str, Any]]:
                     eval_metric="logloss",
                     random_state=random_state,
                     n_jobs=-1,
-                    use_label_encoder=False,
                 ),
             )
         ]
@@ -307,4 +306,5 @@ def run_training() -> None:
 
 
 if __name__ == "__main__":
+    print("Starting training...")
     run_training()

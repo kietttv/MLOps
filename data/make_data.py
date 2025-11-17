@@ -108,6 +108,7 @@ def _resolve_parameter(env_key: str, cli_value: int | float | None, default: int
 
 
 if __name__ == "__main__":
+    print("Starting data generation...")
     args = _parse_args()
     n_samples = _resolve_parameter("DATA_N_SAMPLES", args.n_samples, 2000)
     class_sep = _resolve_parameter("DATA_CLASS_SEP", args.class_sep, 1.2)
