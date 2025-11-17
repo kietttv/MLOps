@@ -1,6 +1,8 @@
 @echo off
 setlocal
 
+set PYTHONPATH=%CD%
+
 python data\make_data.py
 if errorlevel 1 exit /b %errorlevel%
 
