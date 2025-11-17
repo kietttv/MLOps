@@ -13,6 +13,9 @@ venv/
 *.db
 mlruns/
 
+# But allow production model directory
+!models/production/
+
 # OS specific
 .DS_Store
 

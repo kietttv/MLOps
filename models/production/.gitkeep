@@ -1,0 +1,4 @@
+# This directory contains the production model copied from MLflow registry
+# The model is automatically copied here when running models.evaluate
+# This allows the model to be tracked in git without pushing entire mlruns/
+

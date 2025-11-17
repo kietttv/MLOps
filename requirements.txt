@@ -9,4 +9,5 @@ seaborn
 xgboost
 pytest
 requests
+pyyaml
 

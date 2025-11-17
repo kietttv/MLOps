@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 from typing import Any, Dict
 
@@ -16,6 +17,7 @@ import pandas as pd
 DEFAULT_EXPERIMENT_NAME = "Customer Purchase Prediction"
 REGISTERED_MODEL_NAME = "best-customer-classifier"
 BEST_MODEL_PATH = Path(__file__).resolve().parent / "last_best.json"
+PRODUCTION_MODEL_DIR = Path(__file__).resolve().parent / "production"
 
 
 def _load_last_best() -> Dict[str, Any]:
@@ -70,6 +72,104 @@ def _transition_to_production(client: MlflowClient, version: str) -> None:
     )
 
 
+def _copy_production_model(client: MlflowClient, version: str) -> None:
+    """Copy the production model to models/production/ for git tracking."""
+
+    try:
+        import mlflow.pyfunc
+        
+        # Load model from MLflow registry
+        model_uri = f"models:/{REGISTERED_MODEL_NAME}/{version}"
+        model = mlflow.pyfunc.load_model(model_uri)
+        
+        # Get the actual model path from MLflow
+        # Try to find model in mlruns directory structure
+        tracking_uri = mlflow.get_tracking_uri()
+        
+        # Skip copy if using SQLite backend (e.g., in Docker where model is already in image)
+        if tracking_uri.startswith("sqlite://"):
+            print(f"Skipping copy: SQLite backend detected (model should already be in models/production/)")
+            return
+        
+        if not tracking_uri.startswith("file://"):
+            raise ValueError(f"Unsupported tracking URI format: {tracking_uri}")
+        
+        import urllib.parse
+        # Parse file:// URI correctly (file:///D:/path -> D:/path)
+        tracking_path_str = tracking_uri.replace("file://", "")
+        # Remove leading slash if present (file:///D: -> /D: -> D:)
+        if tracking_path_str.startswith("/"):
+            tracking_path_str = tracking_path_str[1:]
+        mlruns_path = Path(urllib.parse.unquote(tracking_path_str))
+        
+        # Get model version info
+        model_version_info = client.get_model_version(REGISTERED_MODEL_NAME, version)
+        model_id = model_version_info.model_id  # e.g., m-5bff8c804e6b441c87825513cdde7820
+        
+        # Read storage_location from meta.yaml file directly (Python API doesn't expose it)
+        meta_yaml_path = mlruns_path / "models" / REGISTERED_MODEL_NAME / f"version-{version}" / "meta.yaml"
+        
+        if meta_yaml_path.exists():
+            import yaml
+            with meta_yaml_path.open("r", encoding="utf-8") as f:
+                meta_data = yaml.safe_load(f)
+                storage_location = meta_data.get("storage_location")
+                
+                if storage_location and storage_location.startswith("file://"):
+                    # Parse storage_location URI
+                    storage_path_str = storage_location.replace("file://", "")
+                    if storage_path_str.startswith("/"):
+                        storage_path_str = storage_path_str[1:]
+                    storage_path_str = urllib.parse.unquote(storage_path_str)
+                    storage_path = Path(storage_path_str)
+                    # storage_location points to artifacts/ directory, model files are directly in it
+                    if storage_path.exists():
+                        source_path = storage_path
+                    else:
+                        raise FileNotFoundError(f"Storage path does not exist: {storage_path}")
+                else:
+                    raise ValueError(f"Invalid storage_location in meta.yaml: {storage_location}")
+        else:
+            # Fallback: Try to find model using model_id
+            # Model structure: mlruns/{experiment_id}/models/{model_id}/artifacts/model
+            source_path = None
+            for exp_dir in mlruns_path.iterdir():
+                if exp_dir.is_dir() and exp_dir.name != "models" and exp_dir.name != "0":
+                    model_dir = exp_dir / "models" / model_id / "artifacts" / "model"
+                    if model_dir.exists():
+                        source_path = model_dir
+                        break
+            
+            if source_path is None:
+                # Last fallback: try registry directory
+                registry_model_path = mlruns_path / "models" / REGISTERED_MODEL_NAME / f"version-{version}" / "artifacts" / "model"
+                if registry_model_path.exists():
+                    source_path = registry_model_path
+                else:
+                    raise FileNotFoundError(f"Could not find model for version {version} (model_id={model_id})")
+        
+        # Create production directory
+        PRODUCTION_MODEL_DIR.mkdir(parents=True, exist_ok=True)
+        target_path = PRODUCTION_MODEL_DIR / "model"
+        
+        # Remove existing model if present
+        if target_path.exists():
+            shutil.rmtree(target_path)
+        
+        # Copy model directory
+        shutil.copytree(source_path, target_path)
+        
+        # Create .gitkeep to ensure directory is tracked
+        (PRODUCTION_MODEL_DIR / ".gitkeep").touch(exist_ok=True)
+        
+        print(f"Copied production model (version {version}) to {target_path}")
+    except Exception as exc:
+        print(f"Warning: Failed to copy production model: {exc}")
+        import traceback
+        traceback.print_exc()
+        # Don't fail the whole evaluation if copy fails
+
+
 def evaluate_best_run(metric: str, experiment_name: str) -> Dict[str, Any]:
     """Identify the best run by metric, register/transition its model, and update metadata."""
 
@@ -101,6 +201,9 @@ def evaluate_best_run(metric: str, experiment_name: str) -> Dict[str, Any]:
 
     version = _ensure_model_version(client, top_run_id)
     _transition_to_production(client, version)
+    
+    # Copy production model to models/production/ for git tracking
+    _copy_production_model(client, version)
 
     best_payload = {
         "metric": metric,

@@ -3,15 +3,22 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any, Dict, List
 
 import mlflow.pyfunc
 import numpy as np
+import pandas as pd
 from flask import Flask, jsonify, render_template, request
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
 logger = logging.getLogger(__name__)
 
 MODEL_URI = "models:/best-customer-classifier/Production"
+PRODUCTION_MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "production" / "model"
 FEATURE_SCHEMA = [
     {"id": "f1", "label": "Customer Age", "hint": "Tuổi của khách hàng (năm)"},
     {"id": "f2", "label": "Annual Income (USD)", "hint": "Thu nhập hằng năm (USD)"},
@@ -28,14 +35,28 @@ FEATURE_NAMES = [field["id"] for field in FEATURE_SCHEMA]
 
 
 def _load_model() -> mlflow.pyfunc.PyFuncModel:
-    """Load the production model from the MLflow Model Registry."""
+    """Load the production model from the MLflow Model Registry.
+    
+    Falls back to loading from models/production/ if registry fails (e.g., in Docker without mlruns).
+    """
 
-    logger.info("Loading production model from MLflow registry URI=%s", MODEL_URI)
-    return mlflow.pyfunc.load_model(MODEL_URI)
+    try:
+        logger.info("Attempting to load production model from MLflow registry URI=%s", MODEL_URI)
+        return mlflow.pyfunc.load_model(MODEL_URI)
+    except Exception as exc:
+        logger.warning("Failed to load from MLflow registry: %s. Falling back to production directory.", exc)
+        
+        # Fallback: load from models/production/ (copied during evaluate)
+        if PRODUCTION_MODEL_PATH.exists():
+            logger.info("Loading model from production directory: %s", PRODUCTION_MODEL_PATH)
+            return mlflow.pyfunc.load_model(str(PRODUCTION_MODEL_PATH))
+        
+        # Re-raise original exception if fallback also fails
+        raise exc
 
 
-def _parse_input(payload: Dict[str, Any]) -> np.ndarray:
-    """Validate and transform incoming payload into a model-ready numpy array."""
+def _parse_input(payload: Dict[str, Any]) -> pd.DataFrame:
+    """Validate and transform incoming payload into a model-ready DataFrame."""
 
     if set(payload.keys()) != set(FEATURE_NAMES):
         missing = [name for name in FEATURE_NAMES if name not in payload]
@@ -54,7 +75,8 @@ def _parse_input(payload: Dict[str, Any]) -> np.ndarray:
         except (TypeError, ValueError) as exc:
             raise ValueError(f"Invalid value for '{feature}': {payload[feature]}") from exc
 
-    return np.array(values, dtype=float).reshape(1, -1)
+    data = np.array(values, dtype=float).reshape(1, -1)
+    return pd.DataFrame(data, columns=FEATURE_NAMES)
 
 
 def create_app() -> Flask:
